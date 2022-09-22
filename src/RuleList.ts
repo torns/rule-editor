@@ -4,6 +4,7 @@ import File from './data/File';
 
 export default class RuleList
 {
+    isBalloonServerStandard!: boolean
     isJsonFormat!: boolean
     configObject: any
 
@@ -18,15 +19,19 @@ export default class RuleList
         this.rulesOnce = []
     }
 
-    loadRules(text: string, isJsonFormat: boolean)
+    loadRules(text: string, isJsonFormat: boolean, isBalloonServerStandard: boolean)
     {
         this.isJsonFormat = isJsonFormat
         this.configObject = isJsonFormat ? JSON.parse(text) : yaml.load(text)
+        this.isBalloonServerStandard = isBalloonServerStandard
 
-        for (const rule of this.configObject.common_mode)
+        let common = !isBalloonServerStandard ? this.configObject.common_mode : this.configObject.commonMode
+        let once = !isBalloonServerStandard ? this.configObject.once_mode : this.configObject.onceMode
+
+        for (const rule of common)
             this.rulesCommon.push(this.deescapePath(rule))
 
-        for (const rule of this.configObject.once_mode)
+        for (const rule of once)
             this.rulesOnce.push(this.deescapePath(rule))
     }
 
@@ -160,12 +165,15 @@ export default class RuleList
         let rulesCommon = this.rulesCommon.map(p => this.escapePath(p))
         let rulesOnce = this.rulesOnce.map(p => this.escapePath(p))
 
-        let obj = {
-            ...this.configObject,
+        let merge = !this.isBalloonServerStandard ? {
             common_mode: rulesCommon,
             once_mode: rulesOnce,
+        } : {
+            commonMode: rulesCommon,
+            onceMode: rulesOnce,
         }
-
+        
+        let obj = { ...this.configObject, ...merge }
         return this.isJsonFormat ? JSON.stringify(obj, undefined, 4) : yaml.dump(obj)
     }
 
