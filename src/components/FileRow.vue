@@ -180,6 +180,9 @@ export default defineComponent({
         &[type=dir]
             .file-row-set-update-method
                 display: none
+            
+            .file-row-modified-text
+                color: #787878
 
         &[state=fetching]
             .file-row-filename
@@ -188,9 +191,6 @@ export default defineComponent({
                     animation: loading 1s infinite
                 // &::after
                 //     content: " (正在获取目录下的文件...)"
-        
-        .file-row-modified-text
-            color: #787878
         
         .file-row-set-update-method
             position: absolute
