@@ -24,8 +24,6 @@ export default class App extends AbstractComponentData
     {
         this.ruleList = new RuleList()
         this.rootFile = new File(null, '', 0, -1, [], true, false)
-
-        console.log(this.rootFile);
         
         return {
             rootFile: this.rootFile,
@@ -48,6 +46,12 @@ export default class App extends AbstractComponentData
     {
         ;(async () => {
             let parameters = getQueryParamters(location.search)
+
+            let args: string|null = parameters.arguments ?? null
+            if (args != null)
+                parameters = JSON.parse(atob(args))
+                // parameters = JSON.parse(Buffer.from(args, 'base64').toString())
+            
             console.log(parameters);
 
             let api: string|null = parameters.api ?? null
