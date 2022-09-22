@@ -7,15 +7,17 @@
             
             <div class="file-row-filename" :title="file.filename">
                 {{file.filename}}{{ isDir() && getRuleCount() > 0 ? (' (' + getRuleCount() + ')') : ''}}
+                
+            </div>
+
+            <div class="file-row-set-update-method">
+                <button type="button" class="file-row-set-update-method-1" :active="getFileState() != 1 ? undefined : ''" @:click="setFileState(1)">普通</button>
+                <button type="button" class="file-row-set-update-method-2" :active="getFileState() != 2 ? undefined : ''" @:click="setFileState(2)">补全</button>
+                <button type="button" class="file-row-set-update-method-0" :active="getFileState() != 0 ? undefined : ''" @:click="setFileState(0)">忽略</button>
             </div>
 
             <div class="file-row-modified">
                 <div class="file-row-modified-text">{{formatTime(file.modified)}}</div>
-                <div class="file-row-set-update-method">
-                    <button type="button" class="file-row-set-update-method-1" :active="getFileState() != 1 ? undefined : ''" @:click="setFileState(1)">普通</button>
-                    <button type="button" class="file-row-set-update-method-2" :active="getFileState() != 2 ? undefined : ''" @:click="setFileState(2)">补全</button>
-                    <button type="button" class="file-row-set-update-method-0" :active="getFileState() != 0 ? undefined : ''" @:click="setFileState(0)">忽略</button>
-                </div>
             </div>
 
             <div class="file-row-length">
@@ -92,7 +94,7 @@ export default defineComponent({
         },
         shortInvalidRule(rule: string) {
             let path = this.file.getPath()
-            return rule.startsWith(path) ? rule.substring(path.length) : rule
+            return rule.startsWith(path) ? rule.substring(path.length + 1) : rule
         },
         getRuleCount(): number {
             return this.$root.getRuleCount(this.file.getPath())
@@ -191,13 +193,20 @@ export default defineComponent({
                     animation: loading 1s infinite
                 // &::after
                 //     content: " (正在获取目录下的文件...)"
+
+        .file-row-filename
+            flex-grow: 1
+            flex-shrink: 1
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         
         .file-row-set-update-method
-            position: absolute
-            top: 0px
-            left: 0px
-            right: 0px
-            bottom: 0px
+            width: 15%
+            min-width: 160px
+            flex-shrink: 0
+            white-space: nowrap;
+            margin: 0px 8px
             display: flex
             gap: 14px;
             // margin-left: 6px;
@@ -211,23 +220,17 @@ export default defineComponent({
             .file-row-set-update-method-2[active]
                 background-color: #e1e100;
                 
-
-        .file-row-filename
-            flex-grow: 1
-            flex-shrink: 1
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-
         .file-row-modified
-            width: 20vw
+            width: 15%
             min-width: 170px
+            flex-shrink: 0
             white-space: nowrap;
             position: relative
 
         .file-row-length
-            width: 10vw
+            width: 8%
             min-width: 65px
+            flex-shrink: 0
             text-align: right;
             white-space: nowrap;
     
