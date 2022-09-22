@@ -6,7 +6,7 @@
             </div>
             
             <div class="file-row-filename" :title="file.filename">
-                {{file.filename}}
+                {{file.filename}}{{ isDir() && getRuleCount() > 0 ? (' (' + getRuleCount() + ')') : ''}}
             </div>
 
             <div class="file-row-modified">
@@ -26,10 +26,19 @@
         <div class="file-row-files" v-if="file.expanded">
             <file-row
                 v-for="f in (file.files as Array<File>)"
-                :parent="parent + (parent != '' ? '/' : '') + f.filename"
+                :isroot="false"
+                :parent="isroot ? f.filename : (parent + (parent != '' ? '/' : '') + f.filename)"
                 :file="f"
                 :indent="indent + 1"
             ></file-row>
+            
+            <div class="file-row-invalid" :title="rule" :mode="isCommon ? 'common' : 'once'" v-for="[rule, isCommon] in getInvalidRules()">
+                <span class="file-row-invalid-text">
+                    <span class="file-row-invalid-text-short">失效规则: <span style="text-decoration: line-through;">{{shortInvalidRule(rule)}}</span></span>
+                    <span class="file-row-invalid-text-long">完整规则: {{rule}}</span>
+                </span>
+                <button type="button" class="file-row-invalid-remove" @:click="removeRule(rule, isCommon)">移除</button>
+            </div>
         </div>
     </div>
 </template>
@@ -65,7 +74,7 @@ export default defineComponent({
             return moment(time * 1000).format('YYYY-MM-DD HH:mm:ss')
         },
         bytesToSize(bytes: number) {
-            return prettyBytes(bytes)
+            return prettyBytes(bytes).toUpperCase()
         },
         getFileState () {
             return this.$root.getFileState(this.file)
@@ -73,6 +82,36 @@ export default defineComponent({
         setFileState(state: number) {
             this.$root.setFileState(this.file, state)
             this.$forceUpdate()
+        },
+        removeRule(rule: string, isCommonRule: boolean) {
+            this.$root.removeRule(rule, isCommonRule)
+            this.$forceUpdate()
+        },
+        shortInvalidRule(rule: string) {
+            let path = this.file.getPath()
+            return rule.startsWith(path) ? rule.substring(path.length) : rule
+        },
+        getRuleCount(): number {
+            return this.$root.getRuleCount(this.file.getPath())
+        },
+        getInvalidRules(): Array<[string, boolean]> {
+            if (!this.isDir() || !this.file.isDirectoryFetched())
+                return []
+            
+            let path = this.isroot ? '' : this.file.getPath()
+            let filenames = this.file.isDirectoryFetched() ? this.file.files!.map((f: File) => f.filename) : []
+            
+            let [common, once] = this.$root.getInvalidRules(path, filenames)
+
+            let rules: Array<[string, boolean]> = []
+
+            for (const rule of common)
+                rules.push([rule, true])
+            
+            for (const rule of once) 
+                rules.push([rule, false])
+
+            return rules
         },
         expand() {
             if (!this.isDir())
@@ -88,6 +127,7 @@ export default defineComponent({
         },
     },
     props: {
+        isroot: { type: Boolean, required: true },
         parent: { type: String, required: true },
         file: { type: File, required: true },
         indent: { type: Number, required: true }
@@ -106,7 +146,7 @@ export default defineComponent({
     .file-row-info
         display: flex
         border: solid 1px #00000000;
-        padding-left: calc(var(--indent) * 2rem );
+        padding-left: calc(var(--indent) * 2rem);
 
         &:hover
             border-color: #444
@@ -145,6 +185,10 @@ export default defineComponent({
                     animation: loading 1s infinite
                 // &::after
                 //     content: " (正在获取目录下的文件...)"
+        
+        .file-row-modified-text
+            color: #787878
+        
         .file-row-set-update-method
             position: absolute
             top: 0px
@@ -173,13 +217,13 @@ export default defineComponent({
             text-overflow: ellipsis;
 
         .file-row-modified
-            width: 20vw
+            width: 20%
             min-width: 170px
             white-space: nowrap;
             position: relative
 
         .file-row-length
-            width: 10vw
+            width: 10%
             min-width: 65px
             text-align: right;
             white-space: nowrap;
@@ -187,6 +231,36 @@ export default defineComponent({
     .file-row-files
         display: flex
         flex-direction: column;
+
+        .file-row-invalid
+            padding-left: calc((var(--indent) + 1) * 2rem + 16px);
+
+            .file-row-invalid-text
+                margin-right: 1rem
+
+                // .file-row-invalid-text-short
+
+                .file-row-invalid-text-long
+                    display: none
+            
+            .file-row-invalid-remove
+                display: none
+            
+            &[mode=common]
+                color: #00a97a;
+            
+            &[mode=once]
+                color: #9b9b03;
+
+            &:hover
+                .file-row-invalid-remove
+                    display: unset
+                
+                .file-row-invalid-text-long
+                    display: unset
+                
+                .file-row-invalid-text-short
+                    display: none
 
 @keyframes loading
     0%

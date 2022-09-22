@@ -5,10 +5,10 @@
         </div>
         <div class="file-rows">
             <file-row
-                v-for="file in (files as Array<File>)"
-                v-bind:parent="''"
-                v-bind:file="file"
-                v-bind:indent="0"
+                :isroot="true"
+                :parent="''"
+                :file="rootFile"
+                :indent="0"
             ></file-row>
         </div>
     </div>
@@ -17,7 +17,6 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import File from "../data/File";
-import App from "./App";
 import FileRow from "./FileRow.vue";
 
 export default defineComponent({
@@ -30,11 +29,14 @@ export default defineComponent({
     methods: {
     },
     props: {
-        files: { type: Array, required: true },
+        rootFile: { type: File, required: true },
         saveRules: { type: Function, required: true }, // () => void
         listFiles: { type: Function, required: true }, // (file: File) => Promise<Array<File>>
         getFileState: { type: Function, required: true }, // (file: File) => number
         setFileState: { type: Function, required: true }, // (file: File, state: number)
+        getInvalidRules: { type: Function, required: true }, // (path: string, filenames: Array<string>) => [Array<string>, Array<string>]
+        removeRule: { type: Function, required: true }, // (rule: string, isCommonRule: boolean) => void
+        getRuleCount: { type: Function, required: true }, // (path: string) => number
     }
 })
 </script>
@@ -44,6 +46,7 @@ export default defineComponent({
 .app
     display: flex
     flex-direction: column
+    max-width: 1300px;
 
     .file-rows
         flex-grow: 1

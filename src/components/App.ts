@@ -22,14 +22,18 @@ export default class App extends AbstractComponentData
 
     protected getProps()
     {
-        this.rootFile = new File(null, 'no_name', 0, -1, [], false, false)
+        this.ruleList = new RuleList()
+        this.rootFile = new File(null, '', 0, -1, [], false, false)
 
         return {
-            files: this.rootFile.files,
+            rootFile: this.rootFile,
             listFiles: this.isolate(this.listFiles),
             getFileState: this.isolate(this.getFileState),
             setFileState: this.isolate(this.setFileState),
             saveRules: this.isolate(this.saveRules),
+            getInvalidRules: this.isolate(this.getInvalidRules),
+            removeRule: this.isolate(this.removeRule),
+            getRuleCount: this.isolate(this.getRuleCount),
         }
     }
 
@@ -96,7 +100,7 @@ export default class App extends AbstractComponentData
         
         console.log(content)
 
-        this.ruleList = new RuleList(content, isJson)
+        this.ruleList.loadRules(content, isJson)
         
         let firstFolder!: Array<(FileInfo | DirInfo)>
         try {
@@ -145,5 +149,20 @@ export default class App extends AbstractComponentData
     private setFileState(file: File, state: number)
     {
         this.ruleList.setFileState(file.getPath(), state)
+    }
+
+    private getInvalidRules(path: string, filenames: Array<string>): [Array<string>, Array<string>]
+    {
+        return this.ruleList.getInvalidRules(path, filenames)
+    }
+
+    private removeRule(rule: string, isCommonRule: boolean)
+    {
+        this.ruleList.removeRule(rule, isCommonRule)
+    }
+
+    private getRuleCount(path: string): number
+    {
+        return this.ruleList.getRuleCount(path)
     }
 }
