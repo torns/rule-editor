@@ -23,8 +23,10 @@ export default class App extends AbstractComponentData
     protected getProps()
     {
         this.ruleList = new RuleList()
-        this.rootFile = new File(null, '', 0, -1, [], false, false)
+        this.rootFile = new File(null, '', 0, -1, [], true, false)
 
+        console.log(this.rootFile);
+        
         return {
             rootFile: this.rootFile,
             listFiles: this.isolate(this.listFiles),
@@ -114,6 +116,7 @@ export default class App extends AbstractComponentData
             this.rootFile.files!.push(this.FileDirInfo2File(t, null))
         
         this.vueComponent.$forceUpdate()
+        this.vueComponent.$refs.fr.$forceUpdate()
     }
 
     private FileDirInfo2File(fdi: FileInfo|DirInfo, parent: File|null): File

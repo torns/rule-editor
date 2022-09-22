@@ -23,7 +23,7 @@
             </div>            
         </div>
 
-        <div class="file-row-files" v-if="file.expanded">
+        <div class="file-row-files" v-if="this.isroot || file.expanded">
             <file-row
                 v-for="f in (file.files as Array<File>)"
                 :isroot="false"
@@ -53,8 +53,7 @@ import prettyBytes from 'pretty-bytes';
 export default defineComponent({
     name: 'file-row',
     mounted() {
-        console.log(this.isroot);
-        this.file.expanded = this.isroot
+        // this.file.expanded = this
     },
     data: (() => ({
     })),
@@ -221,13 +220,13 @@ export default defineComponent({
             text-overflow: ellipsis;
 
         .file-row-modified
-            width: 20%
+            width: 20vw
             min-width: 170px
             white-space: nowrap;
             position: relative
 
         .file-row-length
-            width: 10%
+            width: 10vw
             min-width: 65px
             text-align: right;
             white-space: nowrap;

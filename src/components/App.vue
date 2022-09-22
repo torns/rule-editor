@@ -4,7 +4,7 @@
             <button type="button" v-on:click="saveRules()">保存规则</button>
         </div>
         <div class="file-rows">
-            <file-row
+            <file-row ref="fr"
                 :isroot="true"
                 :parent="''"
                 :file="rootFile"
@@ -22,6 +22,8 @@ import FileRow from "./FileRow.vue";
 export default defineComponent({
     components: {
         'file-row': FileRow
+    },
+    mounted() {
     },
     data: (() => ({
         
@@ -46,7 +48,7 @@ export default defineComponent({
 .app
     display: flex
     flex-direction: column
-    max-width: 1300px;
+    // max-width: 1300px;
 
     .file-rows
         flex-grow: 1

@@ -48,7 +48,7 @@ export default class RuleList
     {
         let count = 0
 
-        console.log('path: ', path);
+        // console.log('path: ', path);
 
         for (const rule of this.rulesCommon)
             if (rule.startsWith(path))
