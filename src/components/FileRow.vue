@@ -1,6 +1,6 @@
 <template>
     <div class="file-row" :style="'--indent: '+indent+';'">
-        <div class="file-row-info" :type="type()" :state="state()" @click="expand()">
+        <div class="file-row-info" v-if="!isroot" :type="type()" :state="state()" @click="expand()">
             <div style="min-width: 16px" :style="isDir() ? '' : 'opacity: 0'">
                 {{file.expanded ? '▼' : '▶'}}
             </div>
@@ -52,6 +52,10 @@ import prettyBytes from 'pretty-bytes';
 
 export default defineComponent({
     name: 'file-row',
+    mounted() {
+        console.log(this.isroot);
+        this.file.expanded = this.isroot
+    },
     data: (() => ({
     })),
     computed: {

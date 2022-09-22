@@ -8,7 +8,7 @@
                 :isroot="true"
                 :parent="''"
                 :file="rootFile"
-                :indent="0"
+                :indent="-1"
             ></file-row>
         </div>
     </div>
