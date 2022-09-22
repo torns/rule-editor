@@ -17,9 +17,9 @@ export default class PrivateProtocol extends AbstractStorage
         return false
     }
 
-    private async fetch(url: string, body: any): Promise<string>
+    private async fetch(path: string, url: string, body: any): Promise<string>
     {
-        let rsp = await fetch(url, {
+        let rsp = await fetch(url + '?path=' + path, {
             method: 'post',
             mode: 'cors',
             cache: 'no-cache',
@@ -37,7 +37,7 @@ export default class PrivateProtocol extends AbstractStorage
     {
         let files: Array<(FileInfo | DirInfo)> = []
         
-        let r = JSON.parse(await this.fetch(this.api, { action: 'list', path: path, }))
+        let r = JSON.parse(await this.fetch(path, this.api, { action: 'list', path: path, }))
         for (const f of r)
         {
             if ('length' in f)
@@ -61,7 +61,7 @@ export default class PrivateProtocol extends AbstractStorage
 
     protected async impl_read(path: string): Promise<string> 
     {
-        return await this.fetch(this.api, {
+        return await this.fetch(path, this.api, {
             action: 'read',
             path: path,
         })
@@ -69,7 +69,7 @@ export default class PrivateProtocol extends AbstractStorage
 
     protected async impl_write(path: string, content: ArrayBuffer): Promise<void> 
     {
-        await this.fetch(this.api, {
+        await this.fetch(path, this.api, {
             action: 'write',
             path: path,
             content: content,
@@ -93,7 +93,7 @@ export default class PrivateProtocol extends AbstractStorage
 
     protected async impl_exists(path: string): Promise<boolean> 
     {
-        return (await this.fetch(this.api, {
+        return (await this.fetch(path, this.api, {
             action: 'exists',
             path: path,
         })).length > 0
