@@ -94,7 +94,7 @@ export default defineComponent({
         },
         shortInvalidRule(rule: string) {
             let path = this.file.getPath()
-            return rule.startsWith(path) ? rule.substring(path.length + 1) : rule
+            return rule.startsWith(path) ? rule.substring(path.length + (path.length > 0 ? 1 : 0)) : rule
         },
         getRuleCount(): number {
             return this.$root.getRuleCount(this.file.getPath())

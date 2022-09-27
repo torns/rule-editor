@@ -1,6 +1,17 @@
 import yaml from 'js-yaml';
 import { escapeForRegExp } from '@sanjo/escape-for-reg-exp';
-import File from './data/File';
+
+export class RuleEntry
+{
+    isRegex: boolean
+    rule: string
+
+    constructor(isRegex: boolean, rule: string)
+    {
+        this.isRegex = isRegex
+        this.rule = rule
+    }
+}
 
 export default class RuleList
 {
@@ -8,8 +19,8 @@ export default class RuleList
     isJsonFormat!: boolean
     configObject: any
 
-    rulesCommon: Array<string>
-    rulesOnce: Array<string>
+    rulesCommon: Array<RuleEntry>
+    rulesOnce: Array<RuleEntry>
 
     escapes = '!#$%&,~;\'.@^+-()[]{}'
 
@@ -29,21 +40,21 @@ export default class RuleList
         let once = !isBalloonServerStandard ? this.configObject.once_mode : this.configObject.onceMode
 
         for (const rule of common)
-            this.rulesCommon.push(this.deescapePath(rule))
+            this.rulesCommon.push(this.fromRule(rule))
 
         for (const rule of once)
-            this.rulesOnce.push(this.deescapePath(rule))
+            this.rulesOnce.push(this.fromRule(rule))
     }
 
     removeRule(rule: string, isCommonRule: boolean)
     {
         if (isCommonRule)
         {
-            let idx = this.rulesCommon.indexOf(rule)
+            let idx = this.rulesCommon.findIndex(r => r.rule == rule)
             if (idx != -1)
                 this.rulesCommon.splice(idx, 1)
         } else {
-            let idx = this.rulesOnce.indexOf(rule)
+            let idx = this.rulesOnce.findIndex(r => r.rule == rule)
             if (idx != -1)
                 this.rulesOnce.splice(idx, 1)
         }
@@ -56,11 +67,11 @@ export default class RuleList
         // console.log('path: ', path);
 
         for (const rule of this.rulesCommon)
-            if (rule.startsWith(path))
+            if (rule.rule.startsWith(path))
                 count += 1
         
         for (const rule of this.rulesOnce)
-            if (rule.startsWith(path))
+            if (rule.rule.startsWith(path))
                 count += 1
 
         return count
@@ -74,18 +85,18 @@ export default class RuleList
      */
     getInvalidRules(path: string, filenames: Array<string>): [Array<string>, Array<string>]
     {
-        function findInvalid(rules: Array<string>): Array<string>
+        function findInvalid(rules: Array<RuleEntry>): Array<string>
         {
             let invalid: Array<string> = []
 
             for (const rule of rules)
             {
                 // 只有前面匹配的规则才做进一步处理
-                if (!rule.startsWith(path))
+                if (!rule.rule.startsWith(path))
                     continue
     
                 // 截取后面的部分，并删除slash方便判断
-                let rest = rule.substring(path.length)
+                let rest = rule.rule.substring(path.length)
                 if (rest.startsWith('/'))
                     rest = rest.substring(1)
     
@@ -97,7 +108,7 @@ export default class RuleList
                     continue
                 
                 // 已经确认是无效规则
-                invalid.push(rule)
+                invalid.push(rule.rule)
             }
 
             return invalid
@@ -126,15 +137,15 @@ export default class RuleList
             this.rulesOnce.splice(_index, 1)
         
         if (_state != 1 && state == 1)
-            this.rulesCommon.push(path)
+            this.rulesCommon.push(new RuleEntry(true, path))
         
         if (_state != 2 && state == 2)
-            this.rulesOnce.push(path)
+            this.rulesOnce.push(new RuleEntry(true, path))
     }
 
-    escapePath(path: string): string
+    toRule(rule: RuleEntry): string
     {
-        let p = path
+        let p = rule.rule
 
         for (const e of this.string2chars(this.escapes))
         {
@@ -142,13 +153,14 @@ export default class RuleList
             p = p.replace(new RegExp(escaped, 'g'), escaped)
         }
 
-        return '@' + p
+        return (rule.isRegex ? '@' : '') + p
     }
 
-    deescapePath(path: string): string
+    fromRule(path: string): RuleEntry
     {
         let p = path
-        if (p.startsWith('@'))
+        let isRegex = p.startsWith('@')
+        if (isRegex)
             p = p.substring(1)
 
         for (const e of this.string2chars(this.escapes))
@@ -157,13 +169,13 @@ export default class RuleList
             p = p.replace(new RegExp(escaped, 'g'), e)
         }
 
-        return p
+        return new RuleEntry(isRegex, p)
     }
 
     toText(): any
     {
-        let rulesCommon = this.rulesCommon.map(p => this.escapePath(p))
-        let rulesOnce = this.rulesOnce.map(p => this.escapePath(p))
+        let rulesCommon = this.rulesCommon.map(p => this.toRule(p))
+        let rulesOnce = this.rulesOnce.map(p => this.toRule(p))
 
         let merge = !this.isBalloonServerStandard ? {
             common_mode: rulesCommon,
@@ -187,11 +199,11 @@ export default class RuleList
 
     private getFileStateInternal(path: string): [number, number]
     {
-        let rcIndex = this.rulesCommon.findIndex(p => p == path)
+        let rcIndex = this.rulesCommon.findIndex(p => p.rule == path)
         if (rcIndex != -1)
             return [1, rcIndex]
         
-        let roIndex = this.rulesOnce.findIndex(p => p == path)
+        let roIndex = this.rulesOnce.findIndex(p => p.rule == path)
         if (roIndex != -1)
             return [2, roIndex]
         
