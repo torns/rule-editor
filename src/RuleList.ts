@@ -145,31 +145,33 @@ export default class RuleList
 
     toRule(rule: RuleEntry): string
     {
-        let p = rule.rule
+        if (!rule.isRegex)
+            return rule.rule
 
+        let p = rule.rule
         for (const e of this.string2chars(this.escapes))
         {
             let escaped = escapeForRegExp(e)
             p = p.replace(new RegExp(escaped, 'g'), escaped)
         }
 
-        return (rule.isRegex ? '@' : '') + p
+        return '@' + p
     }
 
     fromRule(path: string): RuleEntry
     {
-        let p = path
-        let isRegex = p.startsWith('@')
-        if (isRegex)
-            p = p.substring(1)
-
+        let isRegex = path.startsWith('@')
+        
+        if (!isRegex)
+            return new RuleEntry(false, path)
+        
+        let p = path.substring(1)
         for (const e of this.string2chars(this.escapes))
         {
             let escaped = escapeForRegExp(escapeForRegExp(e))
             p = p.replace(new RegExp(escaped, 'g'), e)
         }
-
-        return new RuleEntry(isRegex, p)
+        return new RuleEntry(true, p)
     }
 
     toText(): any
